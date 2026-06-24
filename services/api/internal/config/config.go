@@ -15,6 +15,7 @@ type Config struct {
 	DatabaseURL               string
 	CORSAllowedOrigins        []string
 	GuestTokenSecret          string
+	AdminAPIToken             string
 	S3Endpoint                string
 	S3Region                  string
 	S3Bucket                  string
@@ -23,17 +24,21 @@ type Config struct {
 	S3ForcePathStyle          bool
 	PresignedUploadTTL        time.Duration
 	PresignedUploadTTLSeconds int
+	AdminSignedURLTTL         time.Duration
+	AdminSignedURLTTLSeconds  int
 	MaxUploadSizeBytes        int64
 }
 
 func Load() (*Config, error) {
 	ttlSeconds := getEnvInt("PRESIGNED_UPLOAD_TTL_SECONDS", 900)
+	adminURLTTLSeconds := getEnvInt("ADMIN_SIGNED_URL_TTL_SECONDS", 600)
 	cfg := &Config{
 		AppEnv:                    getEnv("APP_ENV", "development"),
 		HTTPAddr:                  getEnv("HTTP_ADDR", ":8080"),
 		DatabaseURL:               getEnv("DATABASE_URL", "postgres://retrosnap:retrosnap@localhost:5432/retrosnap?sslmode=disable"),
-		CORSAllowedOrigins:        splitCSV(getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174")),
+		CORSAllowedOrigins:        splitCSV(getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175")),
 		GuestTokenSecret:          getEnv("GUEST_TOKEN_SECRET", "change-me-in-production"),
+		AdminAPIToken:             strings.TrimSpace(os.Getenv("ADMIN_API_TOKEN")),
 		S3Endpoint:                strings.TrimSpace(os.Getenv("S3_ENDPOINT")),
 		S3Region:                  getEnv("S3_REGION", "auto"),
 		S3Bucket:                  strings.TrimSpace(os.Getenv("S3_BUCKET")),
@@ -42,6 +47,8 @@ func Load() (*Config, error) {
 		S3ForcePathStyle:          getEnvBool("S3_FORCE_PATH_STYLE", true),
 		PresignedUploadTTL:        time.Duration(ttlSeconds) * time.Second,
 		PresignedUploadTTLSeconds: ttlSeconds,
+		AdminSignedURLTTL:         time.Duration(adminURLTTLSeconds) * time.Second,
+		AdminSignedURLTTLSeconds:  adminURLTTLSeconds,
 		MaxUploadSizeBytes:        int64(getEnvInt("MAX_UPLOAD_SIZE_BYTES", 8*1024*1024)),
 	}
 
@@ -67,6 +74,9 @@ func (c Config) Validate() error {
 	if c.PresignedUploadTTL <= 0 {
 		return errors.New("PRESIGNED_UPLOAD_TTL_SECONDS must be greater than zero")
 	}
+	if c.AdminSignedURLTTL <= 0 {
+		return errors.New("ADMIN_SIGNED_URL_TTL_SECONDS must be greater than zero")
+	}
 	if c.MaxUploadSizeBytes <= 0 {
 		return errors.New("MAX_UPLOAD_SIZE_BYTES must be greater than zero")
 	}
@@ -84,6 +94,9 @@ func (c Config) Validate() error {
 
 	if c.IsProduction() && c.GuestTokenSecret == "change-me-in-production" {
 		return errors.New("GUEST_TOKEN_SECRET must be changed in production")
+	}
+	if c.IsProduction() && c.AdminAPIToken == "" {
+		return errors.New("ADMIN_API_TOKEN is required in production")
 	}
 
 	if len(missing) > 0 {

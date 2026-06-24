@@ -11,6 +11,7 @@ import (
 
 type ObjectStorage interface {
 	PresignPutObject(ctx context.Context, input PresignPutObjectInput) (*PresignPutObjectResult, error)
+	PresignGetObject(ctx context.Context, input PresignGetObjectInput) (*PresignGetObjectResult, error)
 }
 
 type PresignPutObjectInput struct {
@@ -24,6 +25,18 @@ type PresignPutObjectResult struct {
 	URL              string
 	Method           string
 	Headers          map[string]string
+	ExpiresInSeconds int
+}
+
+type PresignGetObjectInput struct {
+	Bucket     string
+	ObjectKey  string
+	Expiration time.Duration
+}
+
+type PresignGetObjectResult struct {
+	URL              string
+	Method           string
 	ExpiresInSeconds int
 }
 
@@ -60,6 +73,22 @@ func (p *R2Presigner) PresignPutObject(ctx context.Context, input PresignPutObje
 		URL:              result.URL,
 		Method:           http.MethodPut,
 		Headers:          headers,
+		ExpiresInSeconds: int(input.Expiration.Seconds()),
+	}, nil
+}
+
+func (p *R2Presigner) PresignGetObject(ctx context.Context, input PresignGetObjectInput) (*PresignGetObjectResult, error) {
+	result, err := p.client.PresignGetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(input.Bucket),
+		Key:    aws.String(input.ObjectKey),
+	}, s3.WithPresignExpires(input.Expiration))
+	if err != nil {
+		return nil, err
+	}
+
+	return &PresignGetObjectResult{
+		URL:              result.URL,
+		Method:           http.MethodGet,
 		ExpiresInSeconds: int(input.Expiration.Seconds()),
 	}, nil
 }

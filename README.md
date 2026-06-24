@@ -16,3 +16,11 @@ The upload coordination API lives in `services/api`.
 cd services/api
 go run ./cmd/api
 ```
+
+The lightweight internal admin dashboard lives in `apps/admin`.
+
+```bash
+cd apps/admin
+npm install
+npm run dev
+```

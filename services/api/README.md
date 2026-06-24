@@ -12,6 +12,11 @@ The API does not receive photo blobs. It creates Cloudflare R2/S3-compatible pre
 - `POST /api/v1/uploads/presign`
 - `POST /api/v1/uploads/confirm`
 - `GET /api/v1/photos/{photoId}/status`
+- `GET /api/v1/admin/events`
+- `POST /api/v1/admin/events`
+- `GET /api/v1/admin/events/{eventId}`
+- `GET /api/v1/admin/events/{eventId}/photos`
+- `PATCH /api/v1/admin/photos/{photoId}`
 
 ## Local Setup
 
@@ -43,8 +48,9 @@ All config is loaded from environment variables. Development defaults are provid
 APP_ENV=development
 HTTP_ADDR=:8080
 DATABASE_URL=postgres://retrosnap:retrosnap@localhost:5432/retrosnap?sslmode=disable
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost:5174,http://localhost:5175
 GUEST_TOKEN_SECRET=change-me-in-production
+ADMIN_API_TOKEN=dev-admin-token
 S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
 S3_REGION=auto
 S3_BUCKET=retrosnap-photos
@@ -52,7 +58,10 @@ S3_ACCESS_KEY_ID=your-access-key
 S3_SECRET_ACCESS_KEY=your-secret-key
 S3_FORCE_PATH_STYLE=true
 PRESIGNED_UPLOAD_TTL_SECONDS=900
+ADMIN_SIGNED_URL_TTL_SECONDS=600
 MAX_UPLOAD_SIZE_BYTES=8388608
 ```
 
 Set a strong `GUEST_TOKEN_SECRET` in production. Guest tokens are returned once to the client and only a keyed hash is stored in PostgreSQL.
+
+Admin Lite endpoints use `Authorization: Bearer <ADMIN_API_TOKEN>` or `X-Admin-Token`. In development, leaving `ADMIN_API_TOKEN` empty disables the guard; production requires it.
