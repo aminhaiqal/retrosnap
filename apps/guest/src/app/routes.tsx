@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { CameraOff } from "lucide-react";
 
 import { LocalQueuePage } from "@/album/LocalQueuePage";
+import { AlbumPage } from "@/album/AlbumPage";
 import { CameraPage } from "@/camera/CameraPage";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,8 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<CameraPage />} />
+      <Route path="/e/:eventId" element={<CameraPage />} />
+      <Route path="/e/:eventId/album" element={<AlbumPage />} />
       <Route path="/queue" element={<LocalQueuePage />} />
       <Route path="/unsupported" element={<UnsupportedBrowserPage />} />
       <Route path="*" element={<UnsupportedBrowserPage />} />

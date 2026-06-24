@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"retrosnap/services/api/internal/admin"
+	"retrosnap/services/api/internal/album"
 	"retrosnap/services/api/internal/config"
 	"retrosnap/services/api/internal/database"
 	"retrosnap/services/api/internal/events"
@@ -53,7 +54,7 @@ func main() {
 	objectStorage := storage.NewR2Presigner(s3Client)
 
 	eventRepo := events.NewRepository(db)
-	eventService := events.NewService(eventRepo)
+	eventService := events.NewService(eventRepo, cfg.PublicGuestAppURL)
 	eventHandler := events.NewHandler(eventService)
 
 	guestRepo := guests.NewRepository(db)
@@ -72,6 +73,10 @@ func main() {
 	adminService := admin.NewService(adminRepo, objectStorage, cfg, logger)
 	adminHandler := admin.NewHandler(adminService, cfg)
 
+	albumRepo := album.NewRepository(db)
+	albumService := album.NewService(albumRepo, objectStorage, cfg)
+	albumHandler := album.NewHandler(albumService)
+
 	router := server.NewRouter(cfg, logger)
 	health.NewHandler().RegisterRoutes(router)
 	router.Route("/api/v1", func(r chi.Router) {
@@ -79,6 +84,7 @@ func main() {
 		guestHandler.RegisterRoutes(r)
 		uploadHandler.RegisterRoutes(r)
 		photoHandler.RegisterRoutes(r)
+		albumHandler.RegisterRoutes(r)
 		adminHandler.RegisterRoutes(r)
 	})
 

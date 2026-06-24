@@ -2,18 +2,23 @@ import { type FormEvent, useEffect, useMemo, useState } from "react";
 import {
   CalendarPlus,
   CheckCircle2,
+  Download,
   Eye,
   EyeOff,
   ImageOff,
+  Link as LinkIcon,
   Loader2,
+  QrCode,
   RefreshCw,
   Shield,
 } from "lucide-react";
+import QRCode from "qrcode";
 
 import {
   AdminEvent,
   AdminPhoto,
   CreateEventInput,
+  ExportLinksResponse,
   RetroSnapAdminAPI,
 } from "./api";
 
@@ -47,6 +52,8 @@ export function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [busyPhotoId, setBusyPhotoId] = useState<string | null>(null);
+  const [exportLinks, setExportLinks] = useState<ExportLinksResponse | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const api = useMemo(() => new RetroSnapAdminAPI(() => adminToken), [adminToken]);
@@ -71,6 +78,31 @@ export function App() {
     }
   }, [selectedEventId]);
 
+  useEffect(() => {
+    let mounted = true;
+    async function renderQr() {
+      if (!selectedEvent?.guestCameraUrl) {
+        setQrDataUrl(null);
+        return;
+      }
+      const dataUrl = await QRCode.toDataURL(selectedEvent.guestCameraUrl, {
+        width: 192,
+        margin: 1,
+        color: {
+          dark: "#151411",
+          light: "#f6efe1",
+        },
+      });
+      if (mounted) {
+        setQrDataUrl(dataUrl);
+      }
+    }
+    void renderQr();
+    return () => {
+      mounted = false;
+    };
+  }, [selectedEvent?.guestCameraUrl]);
+
   async function loadEvents() {
     setIsLoading(true);
     setError(null);
@@ -91,6 +123,7 @@ export function App() {
       const [event, photoResult] = await Promise.all([api.getEvent(eventId), api.listPhotos(eventId)]);
       setSelectedEvent(event);
       setPhotos(photoResult.photos);
+      setExportLinks(null);
       setEvents((current) => current.map((item) => (item.eventId === event.eventId ? event : item)));
     } catch (nextError) {
       setError(errorMessage(nextError));
@@ -127,7 +160,7 @@ export function App() {
     setBusyPhotoId(photo.photoId);
     setError(null);
     try {
-      const updated = await api.setPhotoHidden(photo.photoId, photo.uploadStatus !== "hidden");
+      const updated = await api.setPhotoHidden(photo.photoId, !photo.isHidden);
       setPhotos((current) => current.map((item) => (item.photoId === updated.photoId ? updated : item)));
       if (selectedEventId) {
         const event = await api.getEvent(selectedEventId);
@@ -138,6 +171,18 @@ export function App() {
       setError(errorMessage(nextError));
     } finally {
       setBusyPhotoId(null);
+    }
+  }
+
+  async function runExport() {
+    if (!selectedEventId) {
+      return;
+    }
+    setError(null);
+    try {
+      setExportLinks(await api.exportLinks(selectedEventId));
+    } catch (nextError) {
+      setError(errorMessage(nextError));
     }
   }
 
@@ -273,7 +318,37 @@ export function App() {
 
           {selectedEvent ? (
             <>
+              <section className="event-tools">
+                <div className="link-stack">
+                  <LinkLine label="Guest camera" value={selectedEvent.guestCameraUrl} />
+                  <LinkLine label="Album" value={selectedEvent.albumUrl} />
+                </div>
+                <div className="qr-card">
+                  {qrDataUrl ? <img src={qrDataUrl} alt="Guest camera QR code" /> : <QrCode size={64} />}
+                  <span>Guest QR</span>
+                </div>
+              </section>
               <StatsGrid event={selectedEvent} />
+              <div className="action-row">
+                <button className="button secondary" onClick={runExport}>
+                  <Download size={16} />
+                  Export links
+                </button>
+                {exportLinks ? (
+                  <p className="muted">
+                    {exportLinks.photos.length} downloadable processed photos. ZIP export is deferred for MVP.
+                  </p>
+                ) : null}
+              </div>
+              {exportLinks?.photos.length ? (
+                <div className="export-list">
+                  {exportLinks.photos.map((photo) => (
+                    <a key={photo.photoId} href={photo.downloadUrl} target="_blank" rel="noreferrer">
+                      {photo.localPhotoId}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
               <div className="photo-grid">
                 {photos.map((photo) => (
                   <PhotoCard
@@ -303,6 +378,24 @@ export function App() {
   );
 }
 
+function LinkLine({ label, value }: { label: string; value: string }) {
+  async function copy() {
+    await navigator.clipboard.writeText(value);
+  }
+
+  return (
+    <div className="link-line">
+      <span>{label}</span>
+      <a href={value} target="_blank" rel="noreferrer">
+        {value}
+      </a>
+      <button className="icon-button" onClick={copy} aria-label={`Copy ${label}`}>
+        <LinkIcon size={15} />
+      </button>
+    </div>
+  );
+}
+
 function StatsGrid({ event }: { event: AdminEvent }) {
   const stats = [
     ["Total", event.stats.total],
@@ -326,7 +419,7 @@ function StatsGrid({ event }: { event: AdminEvent }) {
 }
 
 function PhotoCard({ photo, busy, onToggleHidden }: { photo: AdminPhoto; busy: boolean; onToggleHidden: () => void }) {
-  const isHidden = photo.uploadStatus === "hidden";
+  const isHidden = photo.isHidden;
 
   return (
     <article className={`photo-card ${isHidden ? "hidden-photo" : ""}`}>
@@ -338,6 +431,7 @@ function PhotoCard({ photo, busy, onToggleHidden }: { photo: AdminPhoto; busy: b
           <span className={`status ${photo.uploadStatus}`}>{photo.uploadStatus}</span>
           <small>{photo.localPhotoId.slice(0, 12)}</small>
         </div>
+        <p className="muted">By {photo.guestDisplayName || "Guest"}</p>
         <dl>
           <div>
             <dt>Captured</dt>

@@ -66,7 +66,7 @@ SELECT e.id,
        COUNT(p.id) FILTER (WHERE p.upload_status = 'processing')::int AS processing,
        COUNT(p.id) FILTER (WHERE p.upload_status = 'processed')::int AS processed,
        COUNT(p.id) FILTER (WHERE p.upload_status = 'failed')::int AS failed,
-       COUNT(p.id) FILTER (WHERE p.upload_status = 'hidden')::int AS hidden
+       COUNT(p.id) FILTER (WHERE p.is_hidden = true)::int AS hidden
 FROM events e
 LEFT JOIN photos p ON p.event_id = e.id
 GROUP BY e.id
@@ -105,7 +105,7 @@ SELECT e.id,
        COUNT(p.id) FILTER (WHERE p.upload_status = 'processing')::int AS processing,
        COUNT(p.id) FILTER (WHERE p.upload_status = 'processed')::int AS processed,
        COUNT(p.id) FILTER (WHERE p.upload_status = 'failed')::int AS failed,
-       COUNT(p.id) FILTER (WHERE p.upload_status = 'hidden')::int AS hidden
+       COUNT(p.id) FILTER (WHERE p.is_hidden = true)::int AS hidden
 FROM events e
 LEFT JOIN photos p ON p.event_id = e.id
 WHERE e.id = $1
@@ -157,11 +157,13 @@ type AdminPhoto struct {
 	PhotoID            uuid.UUID
 	EventID            string
 	GuestSessionID     uuid.UUID
+	GuestDisplayName   string
 	LocalPhotoID       string
 	ObjectKey          string
 	ProcessedObjectKey *string
 	ThumbnailObjectKey *string
 	UploadStatus       string
+	IsHidden           bool
 	CapturedAt         time.Time
 	UploadedAt         *time.Time
 	ProcessedAt        *time.Time
@@ -176,11 +178,13 @@ func (r *Repository) ListPhotos(ctx context.Context, eventID string, limit int) 
 SELECT id,
        event_id,
        guest_session_id,
+       guest_display_name,
        local_photo_id,
        object_key,
        processed_object_key,
        thumbnail_object_key,
        upload_status,
+       is_hidden,
        captured_at,
        uploaded_at,
        processed_at,
@@ -188,8 +192,12 @@ SELECT id,
        processed_size_bytes,
        thumbnail_size_bytes,
        error_message
-FROM photos
-WHERE event_id = $1
+FROM (
+  SELECT p.*, g.guest_display_name
+  FROM photos p
+  JOIN guest_sessions g ON g.id = p.guest_session_id
+  WHERE p.event_id = $1
+) photos
 ORDER BY captured_at DESC
 LIMIT $2`
 
@@ -214,22 +222,21 @@ LIMIT $2`
 func (r *Repository) SetPhotoHidden(ctx context.Context, photoID uuid.UUID, hidden bool) (*AdminPhoto, error) {
 	const query = `
 UPDATE photos
-SET upload_status = CASE
-      WHEN $2 THEN 'hidden'
-      WHEN processed_at IS NOT NULL THEN 'processed'
-      WHEN uploaded_at IS NOT NULL THEN 'uploaded'
-      ELSE 'failed'
-    END,
+SET is_hidden = $2,
+    hidden_at = CASE WHEN $2 THEN now() ELSE NULL END,
+    hidden_reason = CASE WHEN $2 THEN 'admin_moderation' ELSE NULL END,
     updated_at = now()
 WHERE id = $1
 RETURNING id,
           event_id,
           guest_session_id,
+          (SELECT guest_display_name FROM guest_sessions WHERE guest_sessions.id = photos.guest_session_id),
           local_photo_id,
           object_key,
           processed_object_key,
           thumbnail_object_key,
           upload_status,
+          is_hidden,
           captured_at,
           uploaded_at,
           processed_at,
@@ -292,11 +299,13 @@ func scanAdminPhoto(row scanner) (*AdminPhoto, error) {
 		&photo.PhotoID,
 		&photo.EventID,
 		&photo.GuestSessionID,
+		&photo.GuestDisplayName,
 		&photo.LocalPhotoID,
 		&photo.ObjectKey,
 		&processedObjectKey,
 		&thumbnailObjectKey,
 		&photo.UploadStatus,
+		&photo.IsHidden,
 		&photo.CapturedAt,
 		&uploadedAt,
 		&processedAt,

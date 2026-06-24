@@ -25,10 +25,20 @@ func NewHandler(service *Service, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(r chi.Router) {
+	r.Get("/events", h.requireAdmin(h.ListEvents))
+	r.Post("/events", h.requireAdmin(h.CreateEvent))
+	r.Get("/events/{eventId}", h.requireAdmin(h.GetEvent))
+	r.Get("/events/{eventId}/photos", h.requireAdmin(h.ListPhotos))
+	r.Post("/events/{eventId}/export", h.requireAdmin(h.ExportLinks))
+	r.Get("/events/{eventId}/export-links", h.requireAdmin(h.ExportLinks))
+	r.Patch("/photos/{photoId}/moderation", h.requireAdmin(h.ModeratePhoto))
+
 	r.Get("/admin/events", h.requireAdmin(h.ListEvents))
 	r.Post("/admin/events", h.requireAdmin(h.CreateEvent))
 	r.Get("/admin/events/{eventId}", h.requireAdmin(h.GetEvent))
 	r.Get("/admin/events/{eventId}/photos", h.requireAdmin(h.ListPhotos))
+	r.Post("/admin/events/{eventId}/export", h.requireAdmin(h.ExportLinks))
+	r.Get("/admin/events/{eventId}/export-links", h.requireAdmin(h.ExportLinks))
 	r.Patch("/admin/photos/{photoId}", h.requireAdmin(h.ModeratePhoto))
 }
 
@@ -115,6 +125,20 @@ func (h *Handler) ModeratePhoto(w http.ResponseWriter, r *http.Request) {
 	}
 
 	server.WriteJSON(w, http.StatusOK, photo)
+}
+
+func (h *Handler) ExportLinks(w http.ResponseWriter, r *http.Request) {
+	response, err := h.service.ExportLinks(r.Context(), chi.URLParam(r, "eventId"))
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			server.WriteError(w, http.StatusNotFound, "not_found", "Event was not found.")
+			return
+		}
+		server.WriteError(w, http.StatusInternalServerError, "internal_error", "Could not create export links.")
+		return
+	}
+
+	server.WriteJSON(w, http.StatusOK, response)
 }
 
 func (h *Handler) requireAdmin(next http.HandlerFunc) http.HandlerFunc {

@@ -11,7 +11,7 @@ npm run dev
 
 The app runs on `http://localhost:5175` by default and calls the Go API at `VITE_RETROSNAP_API_BASE_URL`.
 
-If `ADMIN_API_TOKEN` is set on the API, paste that token into the Admin token field. The token is stored locally in the browser and sent as a bearer token.
+If `ADMIN_TOKEN` is set on the API, paste that token into the Admin token field. The token is stored locally in the browser and sent as a bearer token.
 
 ## Scope
 
@@ -19,5 +19,8 @@ If `ADMIN_API_TOKEN` is set on the API, paste that token into the Admin token fi
 - View event upload/processing/moderation counts.
 - Review signed preview URLs for uploaded/processed photos.
 - Hide or unhide photos before reveal.
+- Copy guest camera and album URLs.
+- Display a QR code for `/e/{eventId}`.
+- Export temporary signed links for processed, non-hidden photos.
 
 This is not the full partner dashboard, billing, or authentication system.

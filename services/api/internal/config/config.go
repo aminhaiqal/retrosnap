@@ -16,6 +16,9 @@ type Config struct {
 	CORSAllowedOrigins        []string
 	GuestTokenSecret          string
 	AdminAPIToken             string
+	PublicGuestAppURL         string
+	PublicDashboardURL        string
+	PublicAPIURL              string
 	S3Endpoint                string
 	S3Region                  string
 	S3Bucket                  string
@@ -38,7 +41,10 @@ func Load() (*Config, error) {
 		DatabaseURL:               getEnv("DATABASE_URL", "postgres://retrosnap:retrosnap@localhost:5432/retrosnap?sslmode=disable"),
 		CORSAllowedOrigins:        splitCSV(getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175")),
 		GuestTokenSecret:          getEnv("GUEST_TOKEN_SECRET", "change-me-in-production"),
-		AdminAPIToken:             strings.TrimSpace(os.Getenv("ADMIN_API_TOKEN")),
+		AdminAPIToken:             firstNonEmpty("ADMIN_TOKEN", "ADMIN_API_TOKEN"),
+		PublicGuestAppURL:         strings.TrimRight(getEnv("PUBLIC_GUEST_APP_URL", "http://localhost:5173"), "/"),
+		PublicDashboardURL:        strings.TrimRight(getEnv("PUBLIC_DASHBOARD_URL", "http://localhost:5175"), "/"),
+		PublicAPIURL:              strings.TrimRight(getEnv("PUBLIC_API_URL", "http://localhost:8080"), "/"),
 		S3Endpoint:                strings.TrimSpace(os.Getenv("S3_ENDPOINT")),
 		S3Region:                  getEnv("S3_REGION", "auto"),
 		S3Bucket:                  strings.TrimSpace(os.Getenv("S3_BUCKET")),
@@ -154,4 +160,13 @@ func splitCSV(value string) []string {
 	}
 
 	return out
+}
+
+func firstNonEmpty(names ...string) string {
+	for _, name := range names {
+		if value := strings.TrimSpace(os.Getenv(name)); value != "" {
+			return value
+		}
+	}
+	return ""
 }

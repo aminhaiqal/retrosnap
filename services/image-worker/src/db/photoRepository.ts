@@ -40,6 +40,7 @@ WITH candidates AS (
       AND processing_started_at < now() - ($2::int * interval '1 minute')
     )
   )
+  AND is_hidden = false
   ORDER BY uploaded_at ASC NULLS LAST, updated_at ASC
   LIMIT $1
   FOR UPDATE SKIP LOCKED

@@ -14,6 +14,8 @@ export type AdminEvent = {
   revealAt: string;
   filterName: string;
   isActive: boolean;
+  guestCameraUrl: string;
+  albumUrl: string;
   createdAt: string;
   updatedAt: string;
   stats: EventStats;
@@ -23,8 +25,10 @@ export type AdminPhoto = {
   photoId: string;
   eventId: string;
   guestSessionId: string;
+  guestDisplayName: string;
   localPhotoId: string;
   uploadStatus: string;
+  isHidden: boolean;
   previewUrl?: string;
   previewObjectKey?: string;
   originalObjectKey: string;
@@ -37,6 +41,18 @@ export type AdminPhoto = {
   processedSizeBytes?: number;
   thumbnailSizeBytes?: number;
   errorMessage?: string;
+};
+
+export type ExportLinksResponse = {
+  eventId: string;
+  mode: "signed_links";
+  photos: Array<{
+    photoId: string;
+    localPhotoId: string;
+    processedObjectKey: string;
+    downloadUrl: string;
+  }>;
+  limitations: string;
 };
 
 export type CreateEventInput = {
@@ -61,28 +77,35 @@ export class RetroSnapAdminAPI {
   constructor(private readonly getAdminToken: () => string) {}
 
   async listEvents() {
-    return this.request<{ events: AdminEvent[] }>("/api/v1/admin/events");
+    return this.request<{ events: AdminEvent[] }>("/api/v1/events");
   }
 
   async createEvent(input: CreateEventInput) {
-    return this.request<AdminEvent>("/api/v1/admin/events", {
+    return this.request<AdminEvent>("/api/v1/events", {
       method: "POST",
       body: JSON.stringify(input),
     });
   }
 
   async getEvent(eventId: string) {
-    return this.request<AdminEvent>(`/api/v1/admin/events/${encodeURIComponent(eventId)}`);
+    return this.request<AdminEvent>(`/api/v1/events/${encodeURIComponent(eventId)}`);
   }
 
   async listPhotos(eventId: string) {
-    return this.request<{ photos: AdminPhoto[] }>(`/api/v1/admin/events/${encodeURIComponent(eventId)}/photos`);
+    return this.request<{ photos: AdminPhoto[] }>(`/api/v1/events/${encodeURIComponent(eventId)}/photos`);
   }
 
   async setPhotoHidden(photoId: string, hidden: boolean) {
-    return this.request<AdminPhoto>(`/api/v1/admin/photos/${encodeURIComponent(photoId)}`, {
+    return this.request<AdminPhoto>(`/api/v1/photos/${encodeURIComponent(photoId)}/moderation`, {
       method: "PATCH",
       body: JSON.stringify({ hidden }),
+    });
+  }
+
+  async exportLinks(eventId: string) {
+    return this.request<ExportLinksResponse>(`/api/v1/events/${encodeURIComponent(eventId)}/export`, {
+      method: "POST",
+      body: JSON.stringify({}),
     });
   }
 
