@@ -9,3 +9,10 @@ cd apps/guest
 npm install
 npm run dev
 ```
+
+The upload coordination API lives in `services/api`.
+
+```bash
+cd services/api
+go run ./cmd/api
+```
