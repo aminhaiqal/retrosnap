@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="RetroSnap">
+  <rect width="192" height="192" rx="34" fill="#15120f"/>
+  <rect x="30" y="58" width="132" height="88" rx="14" fill="#26211b" stroke="#f0b73c" stroke-width="6"/>
+  <circle cx="96" cy="102" r="34" fill="#0d0d0c" stroke="#f4efe3" stroke-width="8"/>
+  <circle cx="96" cy="102" r="17" fill="#23615d"/>
+  <rect x="48" y="42" width="42" height="20" rx="6" fill="#d24c63"/>
+  <circle cx="138" cy="72" r="8" fill="#f4efe3"/>
+</svg>

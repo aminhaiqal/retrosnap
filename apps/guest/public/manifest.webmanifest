@@ -1,0 +1,21 @@
+{
+  "name": "RetroSnap Camera",
+  "short_name": "RetroSnap",
+  "display": "standalone",
+  "start_url": "/",
+  "theme_color": "#12110f",
+  "background_color": "#12110f",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons/maskable-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
