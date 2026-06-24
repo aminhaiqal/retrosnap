@@ -1,0 +1,14 @@
+# Example reverse proxy for a VPS or local DNS setup.
+# Replace these hostnames with real domains and set matching PUBLIC_* env vars.
+
+api.retrosnap.localhost {
+	reverse_proxy api:8080
+}
+
+camera.retrosnap.localhost {
+	reverse_proxy guest:5173
+}
+
+admin.retrosnap.localhost {
+	reverse_proxy dashboard:5175
+}

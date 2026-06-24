@@ -23,7 +23,8 @@ Planner creates or opens an event, shares a QR guest camera link, guests capture
 - Image worker processing pipeline with Malaysian Vintage filter, optional timestamp overlay, display image, thumbnail, retries, and low default concurrency.
 - Admin Lite dashboard in `apps/admin`.
 - Admin event list/create/detail, guest camera URL, album URL, QR code, stats, moderation grid, hide/unhide, and export links.
-- Docker Compose development stack with Postgres, MinIO, migrator, API, image worker, guest app, and dashboard app.
+- Docker Compose development stack with Postgres, MinIO upload CORS, migrator, API, image worker, guest app, and dashboard app.
+- `infra/` folder with Compose, MinIO CORS, and Caddy reverse proxy example.
 
 ## Missing Features
 

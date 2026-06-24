@@ -36,7 +36,7 @@ services:
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-retrosnap}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-retrosnap-local-secret}
     volumes:
-      - ./infra/minio/cors.json:/tmp/retrosnap-cors.json:ro
+      - ../minio/cors.json:/tmp/retrosnap-cors.json:ro
     entrypoint: >
       /bin/sh -c "
       until mc alias set local http://minio:9000 $${S3_ACCESS_KEY_ID} $${S3_SECRET_ACCESS_KEY}; do sleep 2; done;
@@ -52,7 +52,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgres://retrosnap:retrosnap@postgres:5432/retrosnap?sslmode=disable}
     volumes:
-      - ./services/api/migrations:/migrations:ro
+      - ../../services/api/migrations:/migrations:ro
     command: >
       sh -c '
       for file in /migrations/*.sql; do
@@ -63,7 +63,7 @@ services:
 
   api:
     build:
-      context: ./services/api
+      context: ../../services/api
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -98,7 +98,7 @@ services:
 
   image-worker:
     build:
-      context: ./services/image-worker
+      context: ../../services/image-worker
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -117,6 +117,7 @@ services:
       WORKER_BATCH_SIZE: ${WORKER_BATCH_SIZE:-5}
       WORKER_POLL_INTERVAL_MS: ${WORKER_POLL_INTERVAL_MS:-5000}
       WORKER_STALE_PROCESSING_MINUTES: ${WORKER_STALE_PROCESSING_MINUTES:-15}
+      MAX_PROCESSING_ATTEMPTS: ${MAX_PROCESSING_ATTEMPTS:-8}
       ENABLE_TIMESTAMP_OVERLAY: ${ENABLE_TIMESTAMP_OVERLAY:-true}
       TIMEZONE: ${TIMEZONE:-Asia/Kuala_Lumpur}
 
@@ -129,7 +130,7 @@ services:
     environment:
       VITE_RETROSNAP_API_BASE_URL: http://localhost:8080
     volumes:
-      - ./apps/guest:/app
+      - ../../apps/guest:/app
       - guest-node-modules:/app/node_modules
     command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
     ports:
@@ -144,7 +145,7 @@ services:
     environment:
       VITE_RETROSNAP_API_BASE_URL: http://localhost:8080
     volumes:
-      - ./apps/admin:/app
+      - ../../apps/admin:/app
       - dashboard-node-modules:/app/node_modules
     command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5175"
     ports:

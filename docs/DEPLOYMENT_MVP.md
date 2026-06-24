@@ -44,6 +44,12 @@ cp .env.example .env
 docker compose up --build
 ```
 
+Infra-folder equivalent:
+
+```bash
+docker compose -f infra/docker/docker-compose.dev.yml up --build
+```
+
 For production, prefer built static frontend assets served behind Caddy rather than Vite dev servers.
 
 ## Migration Command
@@ -63,6 +69,7 @@ done
 - Serve built `apps/guest/dist` for camera/album routes.
 - Serve built `apps/admin/dist` for Admin Lite.
 - Ensure SPA fallback to `index.html` for `/e/:eventId` and `/e/:eventId/album`.
+- `infra/caddy/Caddyfile` includes a simple hostname-based reverse proxy example.
 
 ## R2 Bucket CORS
 
@@ -72,6 +79,8 @@ The bucket must allow browser uploads from the guest app origin:
 - Headers: `Content-Type`, `*` if needed for signed headers
 - Origins: your camera/admin domains
 - Expose headers: `ETag`
+
+For local MinIO, `infra/minio/cors.json` is applied automatically by the Compose setup.
 
 ## R2 Public Access Decision
 

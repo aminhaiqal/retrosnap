@@ -42,6 +42,9 @@
 - Updated Admin Lite with guest URL, album URL, QR code, explicit hide/unhide, and export links.
 - Added root `.env.example`.
 - Added root `docker-compose.yml`.
+- Added `infra/docker/docker-compose.dev.yml`.
+- Added local MinIO CORS config for browser direct uploads.
+- Added example Caddy reverse proxy config.
 - Added:
   - `docs/MVP_CHECKLIST.md`
   - `docs/MANUAL_TEST_PLAN.md`
