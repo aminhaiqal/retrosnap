@@ -5,6 +5,15 @@ export type GuestSession = {
   guestId: string;
   guestDisplayName: string;
   createdAt: string;
+  apiSessions?: Record<string, ApiGuestSession>;
+};
+
+export type ApiGuestSession = {
+  eventId: string;
+  guestSessionId: string;
+  guestToken: string;
+  guestDisplayName: string;
+  createdAt: string;
 };
 
 function createId() {
@@ -40,4 +49,23 @@ export function getOrCreateGuestSession(displayName = "Guest") {
   } catch {
     return fallback;
   }
+}
+
+export function getApiGuestSession(eventId: string) {
+  return getOrCreateGuestSession().apiSessions?.[eventId];
+}
+
+export function saveApiGuestSession(apiSession: ApiGuestSession) {
+  const guestSession = getOrCreateGuestSession(apiSession.guestDisplayName);
+  const nextSession: GuestSession = {
+    ...guestSession,
+    guestDisplayName: apiSession.guestDisplayName || guestSession.guestDisplayName,
+    apiSessions: {
+      ...guestSession.apiSessions,
+      [apiSession.eventId]: apiSession,
+    },
+  };
+
+  localStorage.setItem(STORAGE_KEYS.guestSession, JSON.stringify(nextSession));
+  return nextSession;
 }

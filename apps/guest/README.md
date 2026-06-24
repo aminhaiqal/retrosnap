@@ -9,6 +9,12 @@ npm install
 npm run dev
 ```
 
+To point the sync engine at the Go API, set:
+
+```bash
+VITE_RETROSNAP_API_BASE_URL=http://localhost:8080
+```
+
 The camera API requires a secure context. `localhost` works for development; a phone on the same network will need HTTPS tunneling or a trusted local certificate.
 
 ## Scope
@@ -16,6 +22,6 @@ The camera API requires a secure context. `localhost` works for development; a p
 - Captures from the live camera stream.
 - Stores JPEG blobs in IndexedDB before attempting upload.
 - Shows a local queue/debug screen at `/queue`.
-- Uses a mocked upload layer that can later be replaced with a presigned URL flow.
+- Requests presigned upload URLs from the Go API, uploads blobs directly to object storage, then confirms metadata with the API.
 
-No authentication, backend, billing, dashboard, or real storage integration is included in this milestone.
+No dashboard, billing, partner management, or image processing worker is included in this milestone.
