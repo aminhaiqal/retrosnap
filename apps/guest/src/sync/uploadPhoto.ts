@@ -1,6 +1,6 @@
 import type { QueuedPhoto } from "@/queue/queueTypes";
 import { getApiGuestSession, saveApiGuestSession, type ApiGuestSession } from "@/event/guestSession";
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, ENABLE_MOCK_API } from "@/lib/config";
 import { isOnline } from "@/sync/networkStatus";
 import { RetroSnapError } from "@/lib/errors";
 
@@ -166,9 +166,22 @@ async function confirmUpload(photo: QueuedPhoto, session: ApiGuestSession, presi
   });
 }
 
+async function mockUploadPhoto(photo: QueuedPhoto): Promise<UploadPhotoResult> {
+  await new Promise((resolve) => window.setTimeout(resolve, 250));
+
+  return {
+    remotePhotoId: `mock-${photo.localPhotoId}`,
+    remoteUrl: `mock://retrosnap/${encodeURIComponent(photo.eventId)}/${encodeURIComponent(photo.localPhotoId)}.jpg`,
+  };
+}
+
 export async function uploadPhoto(photo: QueuedPhoto): Promise<UploadPhotoResult> {
   if (!isOnline()) {
     throw new RetroSnapError("upload_offline", "Device is offline. The photo will retry automatically.");
+  }
+
+  if (ENABLE_MOCK_API) {
+    return mockUploadPhoto(photo);
   }
 
   const session = await ensureGuestSession(photo);

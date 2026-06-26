@@ -43,7 +43,7 @@
 - Added root `.env.example`.
 - Added root `docker-compose.yml`.
 - Added `infra/docker/docker-compose.dev.yml`.
-- Added local MinIO CORS config for browser direct uploads.
+- Added Cloudflare R2 CORS guidance for browser direct uploads.
 - Added example Caddy reverse proxy config.
 - Added:
   - `docs/MVP_CHECKLIST.md`
@@ -53,7 +53,7 @@
 ## What Could Not Be Completed
 
 - ZIP generation was not implemented. The MVP uses signed export links instead.
-- A full end-to-end dry run with a real camera, Postgres, MinIO/R2, processing worker, and album reveal was not executed in this session.
+- A full end-to-end dry run with a real camera, Postgres, Cloudflare R2, processing worker, and album reveal was not executed in this session.
 - Automated browser E2E tests were not added.
 - Production Caddy configuration was not implemented.
 

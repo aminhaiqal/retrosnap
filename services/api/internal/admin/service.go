@@ -187,7 +187,7 @@ func (s *Service) ExportLinks(ctx context.Context, eventID string) (*ExportLinks
 		}
 
 		result, err := s.objectStorage.PresignGetObject(ctx, storage.PresignGetObjectInput{
-			Bucket:     s.cfg.S3Bucket,
+			Bucket:     s.cfg.R2Bucket,
 			ObjectKey:  *photo.ProcessedObjectKey,
 			Expiration: s.cfg.AdminSignedURLTTL,
 		})
@@ -218,7 +218,7 @@ func (s *Service) toPhotoResponse(ctx context.Context, photo AdminPhoto) PhotoRe
 
 	if previewObjectKey != nil {
 		result, err := s.objectStorage.PresignGetObject(ctx, storage.PresignGetObjectInput{
-			Bucket:     s.cfg.S3Bucket,
+			Bucket:     s.cfg.R2Bucket,
 			ObjectKey:  *previewObjectKey,
 			Expiration: s.cfg.AdminSignedURLTTL,
 		})

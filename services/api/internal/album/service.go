@@ -82,7 +82,7 @@ func (s *Service) GetAlbum(ctx context.Context, eventID string, now time.Time) (
 
 func (s *Service) sign(ctx context.Context, objectKey string) (string, error) {
 	result, err := s.objectStorage.PresignGetObject(ctx, storage.PresignGetObjectInput{
-		Bucket:     s.cfg.S3Bucket,
+		Bucket:     s.cfg.R2Bucket,
 		ObjectKey:  objectKey,
 		Expiration: s.cfg.AdminSignedURLTTL,
 	})

@@ -16,6 +16,8 @@ cp .env.example .env
 docker compose up --build
 ```
 
+Set the Cloudflare R2 values in `.env` before starting the stack. RetroSnap no longer ships a local object-storage fallback.
+
 The same full stack also lives under `infra/`:
 
 ```bash
@@ -28,9 +30,8 @@ Then open:
 - Album: `http://localhost:5173/e/demo-wedding-001/album`
 - Admin Lite: `http://localhost:5175`
 - API health: `http://localhost:8080/healthz`
-- MinIO console: `http://localhost:9001`
 
-The local stack includes PostgreSQL, MinIO with upload CORS, database migrations, the Go API, the image worker, the guest app, and Admin Lite.
+The local stack includes PostgreSQL, database migrations, the Go API, the image worker, the guest app, and Admin Lite. Photo originals and derivatives are stored in Cloudflare R2.
 
 ## MVP Docs
 

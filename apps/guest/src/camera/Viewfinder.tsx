@@ -9,7 +9,7 @@ type ViewfinderProps = {
 
 export function Viewfinder({ videoRef, isReady }: ViewfinderProps) {
   return (
-    <div className="relative aspect-[3/2] overflow-hidden rounded-lg border border-stone-700 bg-black shadow-camera">
+    <div className="relative h-full w-full overflow-hidden bg-black">
       <video
         ref={videoRef}
         className="h-full w-full object-cover"

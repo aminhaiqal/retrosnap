@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/lib/config";
+import { API_BASE_URL, ENABLE_MOCK_API } from "@/lib/config";
 
 export const MOCK_EVENT_CONFIG = {
   eventId: "demo-wedding-001",
@@ -22,6 +22,16 @@ export type EventConfig = {
 };
 
 export async function fetchPublicEventConfig(eventId: string): Promise<EventConfig> {
+  if (ENABLE_MOCK_API) {
+    return {
+      ...MOCK_EVENT_CONFIG,
+      eventId,
+      guestCameraUrl: `/e/${encodeURIComponent(eventId)}`,
+      albumUrl: `/e/${encodeURIComponent(eventId)}/album`,
+      isActive: true,
+    };
+  }
+
   const response = await fetch(`${API_BASE_URL}/api/v1/events/${encodeURIComponent(eventId)}/public`);
   if (!response.ok) {
     throw new Error("Could not load event.");

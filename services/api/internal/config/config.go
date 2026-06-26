@@ -19,12 +19,12 @@ type Config struct {
 	PublicGuestAppURL         string
 	PublicDashboardURL        string
 	PublicAPIURL              string
-	S3Endpoint                string
-	S3Region                  string
-	S3Bucket                  string
-	S3AccessKeyID             string
-	S3SecretAccessKey         string
-	S3ForcePathStyle          bool
+	R2Endpoint                string
+	R2Region                  string
+	R2Bucket                  string
+	R2AccessKeyID             string
+	R2SecretAccessKey         string
+	R2ForcePathStyle          bool
 	PresignedUploadTTL        time.Duration
 	PresignedUploadTTLSeconds int
 	AdminSignedURLTTL         time.Duration
@@ -45,12 +45,12 @@ func Load() (*Config, error) {
 		PublicGuestAppURL:         strings.TrimRight(getEnv("PUBLIC_GUEST_APP_URL", "http://localhost:5173"), "/"),
 		PublicDashboardURL:        strings.TrimRight(getEnv("PUBLIC_DASHBOARD_URL", "http://localhost:5175"), "/"),
 		PublicAPIURL:              strings.TrimRight(getEnv("PUBLIC_API_URL", "http://localhost:8080"), "/"),
-		S3Endpoint:                strings.TrimSpace(os.Getenv("S3_ENDPOINT")),
-		S3Region:                  getEnv("S3_REGION", "auto"),
-		S3Bucket:                  strings.TrimSpace(os.Getenv("S3_BUCKET")),
-		S3AccessKeyID:             strings.TrimSpace(os.Getenv("S3_ACCESS_KEY_ID")),
-		S3SecretAccessKey:         strings.TrimSpace(os.Getenv("S3_SECRET_ACCESS_KEY")),
-		S3ForcePathStyle:          getEnvBool("S3_FORCE_PATH_STYLE", true),
+		R2Endpoint:                strings.TrimSpace(os.Getenv("R2_ENDPOINT")),
+		R2Region:                  getEnv("R2_REGION", "auto"),
+		R2Bucket:                  strings.TrimSpace(os.Getenv("R2_BUCKET")),
+		R2AccessKeyID:             strings.TrimSpace(os.Getenv("R2_ACCESS_KEY_ID")),
+		R2SecretAccessKey:         strings.TrimSpace(os.Getenv("R2_SECRET_ACCESS_KEY")),
+		R2ForcePathStyle:          getEnvBool("R2_FORCE_PATH_STYLE", true),
 		PresignedUploadTTL:        time.Duration(ttlSeconds) * time.Second,
 		PresignedUploadTTLSeconds: ttlSeconds,
 		AdminSignedURLTTL:         time.Duration(adminURLTTLSeconds) * time.Second,
@@ -88,10 +88,10 @@ func (c Config) Validate() error {
 	}
 
 	for name, value := range map[string]string{
-		"S3_ENDPOINT":          c.S3Endpoint,
-		"S3_BUCKET":            c.S3Bucket,
-		"S3_ACCESS_KEY_ID":     c.S3AccessKeyID,
-		"S3_SECRET_ACCESS_KEY": c.S3SecretAccessKey,
+		"R2_ENDPOINT":          c.R2Endpoint,
+		"R2_BUCKET":            c.R2Bucket,
+		"R2_ACCESS_KEY_ID":     c.R2AccessKeyID,
+		"R2_SECRET_ACCESS_KEY": c.R2SecretAccessKey,
 	} {
 		if value == "" {
 			missing = append(missing, name)

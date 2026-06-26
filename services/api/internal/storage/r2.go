@@ -10,10 +10,10 @@ import (
 
 func NewR2Client(ctx context.Context, cfg *config.Config) (*s3.Client, error) {
 	return NewS3Client(ctx, S3ClientConfig{
-		Endpoint:        cfg.S3Endpoint,
-		Region:          cfg.S3Region,
-		AccessKeyID:     cfg.S3AccessKeyID,
-		SecretAccessKey: cfg.S3SecretAccessKey,
-		ForcePathStyle:  cfg.S3ForcePathStyle,
+		Endpoint:        cfg.R2Endpoint,
+		Region:          cfg.R2Region,
+		AccessKeyID:     cfg.R2AccessKeyID,
+		SecretAccessKey: cfg.R2SecretAccessKey,
+		ForcePathStyle:  cfg.R2ForcePathStyle,
 	})
 }

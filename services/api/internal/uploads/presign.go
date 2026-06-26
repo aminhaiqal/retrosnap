@@ -25,7 +25,7 @@ func buildPresignResponse(
 	photo *photos.Photo,
 ) (*PresignResponse, error) {
 	result, err := objectStorage.PresignPutObject(ctx, storage.PresignPutObjectInput{
-		Bucket:      cfg.S3Bucket,
+		Bucket:      cfg.R2Bucket,
 		ObjectKey:   photo.ObjectKey,
 		ContentType: photo.ContentType,
 		Expiration:  cfg.PresignedUploadTTL,

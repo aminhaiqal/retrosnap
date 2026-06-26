@@ -5,7 +5,6 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { captureFrame } from "@/capture/captureFrame";
 import { createImageMetadata } from "@/capture/imageMetadata";
@@ -139,64 +138,85 @@ export function CameraView({ eventConfig, guestSession, framesRemaining, syncSta
   const shutterDisabled = cameraState !== "ready" || isCapturing || framesRemaining <= 0;
 
   return (
-    <main className="phone-shell mx-auto flex w-full max-w-[430px] flex-col gap-4 px-4">
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase text-primary">RetroSnap</p>
-          <h1 className="truncate text-2xl font-bold tracking-normal">{eventConfig.eventName}</h1>
-          <p className="text-sm text-muted-foreground">{guestSession.guestDisplayName} camera</p>
-        </div>
-        <Button asChild variant="outline" size="icon" aria-label="Open local queue">
-          <Link to="/queue">
-            <Images className="h-5 w-5" aria-hidden="true" />
-          </Link>
-        </Button>
-      </header>
-
-      <Card className="border-stone-700 bg-[#161411] p-3 shadow-camera">
-        <CardContent className="space-y-4 p-0">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Badge variant={syncStatus.online ? "secondary" : "destructive"} className="gap-1">
-              {syncStatus.online ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-              {getStatusText(syncStatus)}
-            </Badge>
-            <Badge variant="outline" className="gap-1">
-              {syncStatus.isSyncing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Cloud className="h-3 w-3" />}
-              {queuedLocalCount} local queued
-            </Badge>
-          </div>
-
-          {cameraState === "error" ? (
-            <CameraPermissionState error={cameraError} onRetry={startCamera} />
-          ) : (
-            <div className="relative">
-              <Viewfinder videoRef={videoRef} isReady={cameraState === "ready"} />
-              <FilmWindAnimation
-                active={isWinding}
-                onFinished={() => {
-                  setIsWinding(false);
-                  setIsCapturing(false);
-                }}
-              />
+    <main className="relative h-[100svh] w-full overflow-hidden bg-black text-foreground">
+      <div className="absolute inset-0">
+        {cameraState === "error" ? (
+          <div className="grid h-full w-full place-items-center bg-background px-4">
+            <div className="w-full max-w-md">
+              <CameraPermissionState error={cameraError} onRetry={startCamera} />
             </div>
-          )}
+          </div>
+        ) : (
+          <>
+            <Viewfinder videoRef={videoRef} isReady={cameraState === "ready"} />
+            <FilmWindAnimation
+              active={isWinding}
+              onFinished={() => {
+                setIsWinding(false);
+                setIsCapturing(false);
+              }}
+            />
+          </>
+        )}
+      </div>
 
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/90 via-black/55 to-transparent px-4 pb-16 pt-4 sm:px-6">
+        <header className="mx-auto flex w-full max-w-6xl items-start justify-between gap-3">
+          <div className="min-w-0 drop-shadow">
+            <p className="text-xs font-semibold uppercase text-primary">RetroSnap</p>
+            <h1 className="max-w-[72vw] truncate text-2xl font-bold tracking-normal sm:max-w-none sm:text-3xl">
+              {eventConfig.eventName}
+            </h1>
+            <p className="truncate text-sm text-stone-200">{guestSession.guestDisplayName} camera</p>
+          </div>
+          <Button
+            asChild
+            variant="outline"
+            size="icon"
+            aria-label="Open local queue"
+            className="pointer-events-auto shrink-0 border-white/20 bg-black/55 text-white backdrop-blur hover:bg-black/70"
+          >
+            <Link to="/queue">
+              <Images className="h-5 w-5" aria-hidden="true" />
+            </Link>
+          </Button>
+        </header>
+
+        <div className="mx-auto mt-3 flex w-full max-w-6xl flex-wrap items-center gap-2">
+          <Badge variant={syncStatus.online ? "secondary" : "destructive"} className="gap-1 bg-black/55 backdrop-blur">
+            {syncStatus.online ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+            {getStatusText(syncStatus)}
+          </Badge>
+          <Badge variant="outline" className="gap-1 border-white/20 bg-black/55 text-stone-100 backdrop-blur">
+            {syncStatus.isSyncing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Cloud className="h-3 w-3" />}
+            {queuedLocalCount} local queued
+          </Badge>
+        </div>
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-4 pb-4 pt-16 sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-3">
           <FrameCounter framesRemaining={framesRemaining} maxFrames={eventConfig.maxFrames} />
 
           {framesRemaining <= 0 ? (
-            <Alert>
+            <Alert className="border-white/15 bg-black/65 text-stone-100 backdrop-blur">
               <CloudOff className="h-4 w-4" aria-hidden="true" />
               <AlertTitle>Film roll completed</AlertTitle>
               <AlertDescription>All frames are saved locally. Keep this tab open when possible so sync can finish.</AlertDescription>
             </Alert>
           ) : null}
 
-          <div className="flex flex-col items-center gap-3 pb-2 pt-1">
-            <ShutterButton disabled={shutterDisabled} isCapturing={isCapturing} onPress={handleShutter} />
-            <p className="min-h-5 text-center text-sm text-muted-foreground">{statusMessage}</p>
+          <div className="flex flex-col items-center gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center">
+            <p className="order-2 min-h-5 max-w-full text-center text-sm text-stone-200 sm:order-none sm:text-left">
+              {statusMessage}
+            </p>
+            <div className="order-1 sm:order-none">
+              <ShutterButton disabled={shutterDisabled} isCapturing={isCapturing} onPress={handleShutter} />
+            </div>
+            <div className="hidden sm:block" aria-hidden="true" />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </main>
   );
 }

@@ -46,7 +46,7 @@ go run ./cmd/api
 
 ## Configuration
 
-All config is loaded from environment variables. Development defaults are provided only where safe; storage credentials and bucket settings are still required because presigning needs real R2/S3 credentials.
+All config is loaded from environment variables. Development defaults are provided only where safe; storage credentials and bucket settings are still required because presigning needs real R2 credentials.
 
 ```txt
 APP_ENV=development
@@ -58,12 +58,12 @@ ADMIN_TOKEN=dev-admin-token
 PUBLIC_GUEST_APP_URL=http://localhost:5173
 PUBLIC_DASHBOARD_URL=http://localhost:5175
 PUBLIC_API_URL=http://localhost:8080
-S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
-S3_REGION=auto
-S3_BUCKET=retrosnap-photos
-S3_ACCESS_KEY_ID=your-access-key
-S3_SECRET_ACCESS_KEY=your-secret-key
-S3_FORCE_PATH_STYLE=true
+R2_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+R2_REGION=auto
+R2_BUCKET=retrosnap-photos
+R2_ACCESS_KEY_ID=your-access-key
+R2_SECRET_ACCESS_KEY=your-secret-key
+R2_FORCE_PATH_STYLE=true
 PRESIGNED_UPLOAD_TTL_SECONDS=900
 ADMIN_SIGNED_URL_TTL_SECONDS=600
 MAX_UPLOAD_SIZE_BYTES=8388608

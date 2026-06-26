@@ -26,10 +26,6 @@ Start from `.env.example` and replace all secrets:
 - `PUBLIC_DASHBOARD_URL`
 - `PUBLIC_API_URL`
 - `CORS_ALLOWED_ORIGINS`
-- `S3_ENDPOINT`
-- `S3_BUCKET`
-- `S3_ACCESS_KEY_ID`
-- `S3_SECRET_ACCESS_KEY`
 - `R2_ENDPOINT`
 - `R2_BUCKET`
 - `R2_ACCESS_KEY_ID`
@@ -80,7 +76,7 @@ The bucket must allow browser uploads from the guest app origin:
 - Origins: your camera/admin domains
 - Expose headers: `ETag`
 
-For local MinIO, `infra/minio/cors.json` is applied automatically by the Compose setup.
+For local development, apply `infra/r2/cors.presigned-local.json` to the R2 bucket and replace the local LAN IP with your machine's current IP.
 
 ## R2 Public Access Decision
 

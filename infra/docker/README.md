@@ -18,8 +18,6 @@ docker compose up --build
 ## Services
 
 - `postgres`: application database.
-- `minio`: local S3-compatible object storage.
-- `minio-create-bucket`: creates the photo bucket and applies browser upload CORS.
 - `migrate`: applies SQL migrations and seeds `demo-wedding-001`.
 - `api`: Go API on `http://localhost:8080`.
 - `image-worker`: Node/Sharp photo processor.
@@ -32,9 +30,8 @@ docker compose up --build
 - Guest camera: `http://localhost:5173/e/demo-wedding-001`
 - Album: `http://localhost:5173/e/demo-wedding-001/album`
 - API health: `http://localhost:8080/healthz`
-- MinIO console: `http://localhost:9001`
 
-For phone testing, `localhost` points at the phone, not your laptop. Use your laptop LAN IP in `.env` for `PUBLIC_GUEST_APP_URL`, `PUBLIC_DASHBOARD_URL`, `PUBLIC_API_URL`, `S3_ENDPOINT`, and `CORS_ALLOWED_ORIGINS`, or use real R2.
+For phone testing, `localhost` points at the phone, not your laptop. Use your laptop LAN IP in `.env` for `PUBLIC_GUEST_APP_URL`, `PUBLIC_DASHBOARD_URL`, `PUBLIC_API_URL`, `VITE_RETROSNAP_API_BASE_URL`, and `CORS_ALLOWED_ORIGINS`. Keep `R2_*` pointed at Cloudflare R2.
 
 ## Useful Commands
 

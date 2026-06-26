@@ -23,8 +23,8 @@ Planner creates or opens an event, shares a QR guest camera link, guests capture
 - Image worker processing pipeline with Malaysian Vintage filter, optional timestamp overlay, display image, thumbnail, retries, and low default concurrency.
 - Admin Lite dashboard in `apps/admin`.
 - Admin event list/create/detail, guest camera URL, album URL, QR code, stats, moderation grid, hide/unhide, and export links.
-- Docker Compose development stack with Postgres, MinIO upload CORS, migrator, API, image worker, guest app, and dashboard app.
-- `infra/` folder with Compose, MinIO CORS, and Caddy reverse proxy example.
+- Docker Compose development stack with Postgres, migrator, API, image worker, guest app, dashboard app, and Cloudflare R2 object storage configuration.
+- `infra/` folder with Compose, R2 CORS example, and Caddy reverse proxy example.
 
 ## Missing Features
 
@@ -36,9 +36,8 @@ Planner creates or opens an event, shares a QR guest camera link, guests capture
 
 ## Blockers
 
-- A real dry run still needs environment configuration and running infrastructure: PostgreSQL migrations plus R2 or local MinIO object storage.
-- R2/MinIO bucket CORS must allow browser `PUT` for direct uploads.
-- Local Docker Compose direct upload uses MinIO at `http://localhost:9000`; test on a phone may need LAN-accessible object storage endpoint.
+- A real dry run still needs environment configuration and running infrastructure: PostgreSQL migrations plus Cloudflare R2 object storage.
+- R2 bucket CORS must allow browser `PUT` for direct uploads.
 
 ## Manual End-to-End Test Plan
 

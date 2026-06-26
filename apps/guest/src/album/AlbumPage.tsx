@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Camera, Lock, X } from "lucide-react";
 
-import { API_BASE_URL } from "@/lib/config";
+import { MOCK_EVENT_CONFIG } from "@/event/eventConfig";
+import { API_BASE_URL, ENABLE_MOCK_API } from "@/lib/config";
+import { getQueuedPhotos } from "@/queue/photoQueue";
 
 type AlbumPhoto = {
   photoId: string;
@@ -27,9 +29,40 @@ export function AlbumPage() {
 
   useEffect(() => {
     let mounted = true;
+    const objectUrls: string[] = [];
 
     async function loadAlbum() {
       try {
+        if (ENABLE_MOCK_API) {
+          const photos = (await getQueuedPhotos())
+            .filter((photo) => photo.eventId === (eventId ?? MOCK_EVENT_CONFIG.eventId))
+            .map<AlbumPhoto>((photo) => {
+              const url = URL.createObjectURL(photo.blob);
+              objectUrls.push(url);
+              return {
+                photoId: photo.remotePhotoId ?? photo.localPhotoId,
+                thumbnailUrl: url,
+                processedUrl: url,
+                capturedAt: photo.capturedAt,
+              };
+            });
+
+          if (mounted) {
+            setAlbum({
+              eventId: eventId ?? MOCK_EVENT_CONFIG.eventId,
+              eventName: MOCK_EVENT_CONFIG.eventName,
+              revealAt: MOCK_EVENT_CONFIG.revealAt,
+              isLocked: false,
+              photos,
+            });
+            setError(null);
+          } else {
+            objectUrls.forEach((url) => URL.revokeObjectURL(url));
+          }
+
+          return;
+        }
+
         const response = await fetch(`${API_BASE_URL}/api/v1/events/${encodeURIComponent(eventId ?? "")}/album`);
         if (!response.ok) {
           throw new Error("Could not load album.");
@@ -50,6 +83,7 @@ export function AlbumPage() {
 
     return () => {
       mounted = false;
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [eventId]);
 

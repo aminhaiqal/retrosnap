@@ -15,6 +15,14 @@ To point the sync engine at the Go API, set:
 VITE_RETROSNAP_API_BASE_URL=http://localhost:8080
 ```
 
+To run the guest camera without the API, enable the mock API:
+
+```bash
+VITE_RETROSNAP_MOCK_API=true npm run dev
+```
+
+Mock mode uses the built-in demo event, marks captured photos as uploaded locally, and shows local captures in the album route.
+
 The camera API requires a secure context. `localhost` works for development; a phone on the same network will need HTTPS tunneling or a trusted local certificate.
 
 Event routes:
