@@ -33,22 +33,30 @@ type CameraState = "requesting" | "ready" | "error";
 
 function getStatusText(status: UploadUiStatus) {
   if (!status.online) {
-    return "Offline";
+    return "Will post later";
   }
 
   if (status.isSyncing) {
-    return "Syncing";
+    return "Posting";
   }
 
   if (status.failed > 0) {
-    return "Retry pending";
+    return "Posting later";
   }
 
   if (status.queued > 0 || status.uploading > 0) {
-    return "Queued";
+    return "Posting";
   }
 
-  return "Synced";
+  return "Ready";
+}
+
+function getPendingText(count: number) {
+  if (count === 0) {
+    return "All posted";
+  }
+
+  return count === 1 ? "1 photo safe" : `${count} photos safe`;
 }
 
 export function CameraView({ eventConfig, guestSession, framesRemaining, syncStatus, onPhotoCaptured }: CameraViewProps) {
@@ -116,9 +124,9 @@ export function CameraView({ eventConfig, guestSession, framesRemaining, syncSta
       saved = true;
       onPhotoCaptured();
       setIsWinding(true);
-      setStatusMessage("Saved locally. Syncing when connection is available.");
-      toast.success("Saved locally", {
-        description: "RetroSnap will sync this photo when the connection is available.",
+      setStatusMessage("Saved. We'll post it automatically.");
+      toast.success("Photo saved", {
+        description: "We'll post it automatically.",
       });
       void syncManager.triggerSync("capture");
     } catch (error) {
@@ -183,13 +191,13 @@ export function CameraView({ eventConfig, guestSession, framesRemaining, syncSta
         </header>
 
         <div className="mx-auto mt-3 flex w-full max-w-6xl flex-wrap items-center gap-2">
-          <Badge variant={syncStatus.online ? "secondary" : "destructive"} className="gap-1 bg-black/55 backdrop-blur">
+          <Badge variant="secondary" className="gap-1 bg-black/55 backdrop-blur">
             {syncStatus.online ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
             {getStatusText(syncStatus)}
           </Badge>
           <Badge variant="outline" className="gap-1 border-white/20 bg-black/55 text-stone-100 backdrop-blur">
             {syncStatus.isSyncing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Cloud className="h-3 w-3" />}
-            {queuedLocalCount} local queued
+            {getPendingText(queuedLocalCount)}
           </Badge>
         </div>
       </div>
@@ -202,7 +210,7 @@ export function CameraView({ eventConfig, guestSession, framesRemaining, syncSta
             <Alert className="border-white/15 bg-black/65 text-stone-100 backdrop-blur">
               <CloudOff className="h-4 w-4" aria-hidden="true" />
               <AlertTitle>Film roll completed</AlertTitle>
-              <AlertDescription>All frames are saved locally. Keep this tab open when possible so sync can finish.</AlertDescription>
+              <AlertDescription>All photos are saved. We'll keep posting them in the background.</AlertDescription>
             </Alert>
           ) : null}
 

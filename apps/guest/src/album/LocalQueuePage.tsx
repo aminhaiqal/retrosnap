@@ -50,7 +50,7 @@ export function LocalQueuePage() {
 
   const handleRetry = async (localPhotoId: string) => {
     await retryPhotoNow(localPhotoId);
-    toast.success("Retry queued");
+    toast.success("Posting again");
     await syncManager.triggerSync("debug-retry");
     await loadPhotos();
   };
@@ -64,7 +64,7 @@ export function LocalQueuePage() {
 
   const handleClearUploaded = async () => {
     await clearUploadedPhotos();
-    toast.success("Uploaded photos cleared");
+    toast.success("Posted photos cleared");
     await syncManager.refreshStats();
     await loadPhotos();
   };
@@ -73,7 +73,7 @@ export function LocalQueuePage() {
     <main className="phone-shell mx-auto flex w-full max-w-[720px] flex-col gap-4 px-4">
       <header className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase text-primary">Debug queue</p>
+          <p className="text-xs font-semibold uppercase text-primary">Saved on this device</p>
           <h1 className="text-2xl font-bold tracking-normal">Local photos</h1>
         </div>
         <Button asChild variant="outline">
@@ -86,25 +86,25 @@ export function LocalQueuePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Queue stats</CardTitle>
+          <CardTitle>Posting status</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          <Badge variant="outline">Total {status.total}</Badge>
-          <Badge variant="outline">Queued {status.queued}</Badge>
-          <Badge variant="outline">Uploading {status.uploading}</Badge>
-          <Badge variant="secondary">Uploaded {status.uploaded}</Badge>
-          <Badge variant={status.failed ? "destructive" : "outline"}>Failed {status.failed}</Badge>
-          <Badge variant={status.online ? "secondary" : "destructive"}>{status.online ? "Online" : "Offline"}</Badge>
+          <Badge variant="outline">Saved {status.total}</Badge>
+          <Badge variant="outline">Posting soon {status.queued}</Badge>
+          <Badge variant="outline">Posting {status.uploading}</Badge>
+          <Badge variant="secondary">Posted {status.uploaded}</Badge>
+          <Badge variant="outline">Posting later {status.failed}</Badge>
+          <Badge variant="secondary">{status.online ? "Connected" : "Will post later"}</Badge>
         </CardContent>
       </Card>
 
       <div className="flex gap-2">
         <Button type="button" variant="outline" className="flex-1" onClick={() => syncManager.triggerSync("debug-manual")}>
-          Retry sync
+          Post now
         </Button>
         <Button type="button" variant="destructive" className="flex-1" onClick={handleClearUploaded} disabled={!status.uploaded}>
           <Trash2 className="h-4 w-4" aria-hidden="true" />
-          Clear uploaded
+          Clear posted
         </Button>
       </div>
 

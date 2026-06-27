@@ -20,4 +20,5 @@ export const CAMERA_CAPTURE = {
 
 export const STORAGE_KEYS = {
   guestSession: "retrosnap.guest-session.v1",
+  eventConfigPrefix: "retrosnap.event-config.v1.",
 } as const;

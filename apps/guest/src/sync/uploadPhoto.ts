@@ -43,6 +43,29 @@ type ConfirmResponse = {
   uploadedAt?: string;
 };
 
+const API_REQUEST_TIMEOUT_MS = 15_000;
+const STORAGE_UPLOAD_TIMEOUT_MS = 60_000;
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number, timeoutMessage: string) {
+  const controller = new AbortController();
+  const timeoutId = globalThis.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new RetroSnapError("upload_failed", timeoutMessage, error);
+    }
+
+    throw error;
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
+}
+
 async function readApiError(response: Response, fallback: string) {
   try {
     const body = (await response.json()) as ApiErrorResponse;
@@ -53,13 +76,28 @@ async function readApiError(response: Response, fallback: string) {
 }
 
 async function apiFetch<T>(path: string, init: RequestInit = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...init.headers,
-    },
-  });
+  let response: Response;
+
+  try {
+    response = await fetchWithTimeout(
+      `${API_BASE_URL}${path}`,
+      {
+        ...init,
+        headers: {
+          "Content-Type": "application/json",
+          ...init.headers,
+        },
+      },
+      API_REQUEST_TIMEOUT_MS,
+      "Connection timed out. The photo will retry automatically.",
+    );
+  } catch (error) {
+    if (error instanceof RetroSnapError) {
+      throw error;
+    }
+
+    throw new RetroSnapError("upload_failed", "Connection failed. The photo will retry automatically.", error);
+  }
 
   if (!response.ok) {
     const message = await readApiError(response, "RetroSnap API request failed.");
@@ -138,11 +176,26 @@ async function requestPresignedUpload(photo: QueuedPhoto, session: ApiGuestSessi
 }
 
 async function putBlobToStorage(photo: QueuedPhoto, presign: PresignResponse) {
-  const response = await fetch(presign.uploadUrl, {
-    method: presign.method,
-    headers: toUploadHeaders(presign.headers),
-    body: photo.blob,
-  });
+  let response: Response;
+
+  try {
+    response = await fetchWithTimeout(
+      presign.uploadUrl,
+      {
+        method: presign.method,
+        headers: toUploadHeaders(presign.headers),
+        body: photo.blob,
+      },
+      STORAGE_UPLOAD_TIMEOUT_MS,
+      "Storage upload timed out. The photo will retry automatically.",
+    );
+  } catch (error) {
+    if (error instanceof RetroSnapError) {
+      throw error;
+    }
+
+    throw new RetroSnapError("upload_failed", "Storage upload failed. The photo will retry automatically.", error);
+  }
 
   if (!response.ok) {
     throw new RetroSnapError("upload_failed", `Storage upload failed with status ${response.status}.`);

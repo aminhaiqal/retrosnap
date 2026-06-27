@@ -19,11 +19,23 @@ function getBadgeVariant(status: UploadStatus) {
     return "secondary";
   }
 
-  if (status === "failed") {
-    return "destructive";
+  return status === "uploading" ? "default" : "outline";
+}
+
+function getStatusLabel(status: UploadStatus) {
+  if (status === "queued") {
+    return "Saved";
   }
 
-  return status === "uploading" ? "default" : "outline";
+  if (status === "uploading") {
+    return "Posting";
+  }
+
+  if (status === "uploaded") {
+    return "Posted";
+  }
+
+  return "Posting later";
 }
 
 export function LocalPhotoCard({ photo, onRetry, onDelete }: LocalPhotoCardProps) {
@@ -55,7 +67,7 @@ export function LocalPhotoCard({ photo, onRetry, onDelete }: LocalPhotoCardProps
           </div>
           <div className="min-w-0 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <Badge variant={getBadgeVariant(photo.uploadStatus)}>{photo.uploadStatus}</Badge>
+              <Badge variant={getBadgeVariant(photo.uploadStatus)}>{getStatusLabel(photo.uploadStatus)}</Badge>
               <span className="truncate font-mono text-[10px] text-muted-foreground">{photo.localPhotoId.slice(0, 8)}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
@@ -69,8 +81,10 @@ export function LocalPhotoCard({ photo, onRetry, onDelete }: LocalPhotoCardProps
           </div>
         </div>
 
-        {photo.errorMessage ? (
-          <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm text-stone-100">{photo.errorMessage}</p>
+        {photo.uploadStatus === "failed" ? (
+          <p className="rounded-md border border-border bg-muted/30 p-2 text-sm text-muted-foreground">
+            We'll try again automatically.
+          </p>
         ) : null}
 
         {photo.remoteUrl ? <p className="truncate text-xs text-muted-foreground">{photo.remoteUrl}</p> : null}
@@ -80,7 +94,7 @@ export function LocalPhotoCard({ photo, onRetry, onDelete }: LocalPhotoCardProps
         <div className="flex gap-2">
           <Button type="button" variant="outline" className="flex-1" disabled={!canRetry} onClick={() => onRetry(photo.localPhotoId)}>
             <RefreshCcw className="h-4 w-4" aria-hidden="true" />
-            Retry
+            Post now
           </Button>
           <Button type="button" variant="destructive" size="icon" aria-label="Delete local photo" onClick={() => onDelete(photo.localPhotoId)}>
             <Trash2 className="h-4 w-4" aria-hidden="true" />

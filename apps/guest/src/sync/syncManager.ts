@@ -1,11 +1,13 @@
 import { getNextRetryAt } from "@/queue/retryPolicy";
 import {
+  getNextRetryDelayMs,
   getQueueStats,
   getQueuedPhotos,
   incrementAttempt,
   markFailed,
   markUploaded,
   markUploading,
+  requeueInterruptedUploads,
 } from "@/queue/photoQueue";
 import type { QueueStats, QueuedPhoto } from "@/queue/queueTypes";
 import { buildUploadStatus, type UploadUiStatus } from "@/sync/uploadStatus";
@@ -43,6 +45,7 @@ class SyncManager {
   private lastSyncAt: string | undefined;
   private subscribers = new Set<SyncSubscriber>();
   private unsubscribeNetwork?: () => void;
+  private retryTimeoutId?: number;
 
   getStatus(): UploadUiStatus {
     return buildUploadStatus(this.stats, isOnline(), this.syncing, this.lastSyncAt);
@@ -72,12 +75,14 @@ class SyncManager {
     });
 
     document.addEventListener("visibilitychange", this.handleVisibilityChange);
+    await requeueInterruptedUploads();
     await this.refreshStats();
     void this.triggerSync("load");
   }
 
   dispose() {
     this.unsubscribeNetwork?.();
+    this.clearRetryTimer();
     document.removeEventListener("visibilitychange", this.handleVisibilityChange);
     this.initialized = false;
   }
@@ -85,6 +90,7 @@ class SyncManager {
   async refreshStats() {
     this.stats = await getQueueStats();
     this.notify();
+    await this.scheduleNextRetry();
   }
 
   async triggerSync(_reason = "manual") {
@@ -137,6 +143,33 @@ class SyncManager {
   private notify() {
     const status = this.getStatus();
     this.subscribers.forEach((callback) => callback(status));
+  }
+
+  private clearRetryTimer() {
+    if (this.retryTimeoutId !== undefined) {
+      if (typeof window !== "undefined") {
+        window.clearTimeout(this.retryTimeoutId);
+      }
+      this.retryTimeoutId = undefined;
+    }
+  }
+
+  private async scheduleNextRetry() {
+    this.clearRetryTimer();
+
+    if (typeof window === "undefined" || this.syncing || !isOnline()) {
+      return;
+    }
+
+    const retryDelayMs = await getNextRetryDelayMs();
+    if (retryDelayMs === undefined) {
+      return;
+    }
+
+    this.retryTimeoutId = window.setTimeout(() => {
+      this.retryTimeoutId = undefined;
+      void this.triggerSync("retry-timer");
+    }, retryDelayMs);
   }
 
   private handleVisibilityChange = () => {

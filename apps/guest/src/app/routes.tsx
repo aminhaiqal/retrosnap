@@ -14,7 +14,7 @@ function UnsupportedBrowserPage() {
         <CameraOff className="h-4 w-4" aria-hidden="true" />
         <AlertTitle>RetroSnap needs a camera browser</AlertTitle>
         <AlertDescription>
-          Open this link in a modern mobile browser with camera access enabled. Photos are saved locally before upload.
+          Open this link in a modern mobile browser with camera access enabled. Photos are saved first, then posted automatically.
         </AlertDescription>
         <Button type="button" className="mt-4" onClick={() => history.back()}>
           Go back
